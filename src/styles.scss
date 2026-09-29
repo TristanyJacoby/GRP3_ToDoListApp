@@ -1,0 +1,84 @@
+:root {
+  --ink: #17181a;
+  --ink-soft: #55585f;
+  --ink-faint: #9a9da3;
+  --ground: #f1f1ee;
+  --surface: #ffffff;
+  --line: #dcdcd6;
+  --line-strong: #c3c3bc;
+  --accent: #c8391f;
+  --accent-ink: #ffffff;
+  --accent-soft: #f4ded9;
+  --done: #7c8067;
+
+  --font-ui: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #ececea;
+    --ink-soft: #b3b5ad;
+    --ink-faint: #77796f;
+    --ground: #17181a;
+    --surface: #1f2022;
+    --line: #313234;
+    --line-strong: #45464a;
+    --accent: #ff6a45;
+    --accent-ink: #17181a;
+    --accent-soft: #3a241c;
+    --done: #8b9075;
+
+    color-scheme: dark;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--ground);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 999px;
+  border: 3px solid var(--ground);
+}
+
+* {
+  scrollbar-color: var(--line-strong) var(--ground);
+}

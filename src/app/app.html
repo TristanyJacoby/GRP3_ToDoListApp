@@ -1,0 +1,166 @@
+<main class="board">
+  <header class="board__header">
+    <h1 class="board__title">Tasks</h1>
+    <p class="board__meta">
+      @if (totalCount() === 0) {
+        Nothing logged yet
+      } @else {
+        <span class="board__count">{{ remainingCount() }}</span> of {{ totalCount() }} open
+      }
+    </p>
+  </header>
+
+  <form class="composer" (ngSubmit)="addTask()">
+    <span class="composer__index">{{ nextIndex() }}</span>
+    <input
+      class="composer__title"
+      type="text"
+      name="title"
+      placeholder="Log a new task…"
+      autocomplete="off"
+      [ngModel]="newTitle()"
+      (ngModelChange)="newTitle.set($event)"
+      required
+    />
+    <input
+      class="composer__date"
+      type="date"
+      name="dueDate"
+      aria-label="Due date"
+      [ngModel]="newDueDate()"
+      (ngModelChange)="newDueDate.set($event)"
+    />
+    <button class="composer__submit" type="submit" [disabled]="!newTitle().trim()">
+      Add
+    </button>
+  </form>
+
+  @if (totalCount() > 0) {
+    <nav class="filters" role="tablist" aria-label="Filter tasks">
+      <button
+        type="button"
+        role="tab"
+        class="filters__tab"
+        [class.filters__tab--active]="filter() === 'all'"
+        [attr.aria-selected]="filter() === 'all'"
+        (click)="setFilter('all')"
+      >
+        All
+      </button>
+      <button
+        type="button"
+        role="tab"
+        class="filters__tab"
+        [class.filters__tab--active]="filter() === 'active'"
+        [attr.aria-selected]="filter() === 'active'"
+        (click)="setFilter('active')"
+      >
+        Open
+      </button>
+      <button
+        type="button"
+        role="tab"
+        class="filters__tab"
+        [class.filters__tab--active]="filter() === 'completed'"
+        [attr.aria-selected]="filter() === 'completed'"
+        (click)="setFilter('completed')"
+      >
+        Done
+      </button>
+    </nav>
+  }
+
+  @if (filteredTasks().length > 0) {
+    <ul class="task-list">
+      @for (task of filteredTasks(); track task.id) {
+        <li
+          class="task-row"
+          [class.task-row--done]="task.completed"
+          [class.task-row--overdue]="isOverdue(task)"
+        >
+          @if (editingId() === task.id) {
+            <form class="task-row__edit" (ngSubmit)="saveEdit(task.id)">
+              <input
+                class="task-row__edit-title"
+                type="text"
+                autocomplete="off"
+                [ngModel]="editTitle()"
+                (ngModelChange)="editTitle.set($event)"
+                name="editTitle"
+                required
+                autofocus
+              />
+              <input
+                class="task-row__edit-date"
+                type="date"
+                aria-label="Due date"
+                [ngModel]="editDueDate()"
+                (ngModelChange)="editDueDate.set($event)"
+                name="editDueDate"
+              />
+              <div class="task-row__edit-actions">
+                <button type="submit" class="task-row__save" [disabled]="!editTitle().trim()">Save</button>
+                <button type="button" class="task-row__cancel" (click)="cancelEdit()">Cancel</button>
+              </div>
+            </form>
+          } @else {
+            <button
+              type="button"
+              class="task-row__check"
+              [attr.aria-pressed]="task.completed"
+              [attr.aria-label]="task.completed ? 'Mark task as open' : 'Mark task as done'"
+              (click)="toggleCompleted(task.id)"
+            >
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <polyline points="3 8.5 6.5 12 13 4" />
+              </svg>
+            </button>
+
+            <button
+              type="button"
+              class="task-row__title"
+              (click)="startEdit(task)"
+              [attr.aria-label]="'Edit ' + task.title"
+            >
+              {{ task.title }}
+            </button>
+
+            <span class="task-row__due">
+              @if (task.dueDate) {
+                {{ isOverdue(task) ? 'overdue · ' : '' }}{{ task.dueDate | date: 'MMM d' }}
+              }
+            </span>
+
+            <button
+              type="button"
+              class="task-row__delete"
+              (click)="removeTask(task.id)"
+              [attr.aria-label]="'Delete ' + task.title"
+            >
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M4 4l8 8M12 4l-8 8" />
+              </svg>
+            </button>
+          }
+        </li>
+      }
+    </ul>
+  } @else {
+    <div class="empty-state">
+      @if (totalCount() === 0) {
+        <svg class="empty-state__mark" viewBox="0 0 48 48" aria-hidden="true">
+          <rect x="6" y="6" width="36" height="36" rx="2" />
+          <path d="M14 18h20M14 24h20M14 30h12" />
+        </svg>
+        <p class="empty-state__title">No entries yet</p>
+        <p class="empty-state__body">Add your first task above to start the log.</p>
+      } @else if (filter() === 'active') {
+        <p class="empty-state__title">Nothing open</p>
+        <p class="empty-state__body">Every logged task is done.</p>
+      } @else {
+        <p class="empty-state__title">Nothing done yet</p>
+        <p class="empty-state__body">Completed tasks will collect here.</p>
+      }
+    </div>
+  }
+</main>
