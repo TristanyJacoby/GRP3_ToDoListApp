@@ -13,6 +13,8 @@ export class TaskStorageService {
       id: crypto.randomUUID(),
       title: draft.title.trim(),
       description: draft.description?.trim() ?? '',
+      category: draft.category ?? '',
+      priority: draft.priority ?? '',
       dueDate: draft.dueDate,
       completed: false,
       createdAt: new Date().toISOString(),
@@ -23,19 +25,25 @@ export class TaskStorageService {
   edit(id: string, draft: TaskDraft): void {
     this.update(
       this._tasks().map((task) =>
-        task.id === id ? {
-                ...task,
-                title: draft.title.trim(),
-                description: draft.description?.trim() ?? '',
-                dueDate: draft.dueDate,
-              } : task,
+        task.id === id
+          ? {
+              ...task,
+              title: draft.title.trim(),
+              description: draft.description?.trim() ?? '',
+              category: draft.category ?? '',
+              priority: draft.priority ?? '',
+              dueDate: draft.dueDate,
+            }
+          : task,
       ),
     );
   }
 
   toggleCompleted(id: string): void {
     this.update(
-      this._tasks().map((task) => (task.id === id ? { ...task, completed: !task.completed } : task)),
+      this._tasks().map((task) =>
+        task.id === id ? { ...task, completed: !task.completed } : task,
+      ),
     );
   }
 

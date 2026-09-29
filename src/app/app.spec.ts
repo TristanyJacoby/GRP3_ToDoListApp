@@ -14,10 +14,12 @@ describe('App', () => {
     expect(app).toBeTruthy();
   });
 
-  it('should render the board title', async () => {
+  it('should render the greeting', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.board__title')?.textContent).toContain('Tasks');
+    expect(compiled.querySelector('.board__title')?.textContent).toMatch(
+      /Good (morning|afternoon|evening)/,
+    );
   });
 });

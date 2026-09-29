@@ -1,11 +1,14 @@
 <main class="board">
   <header class="board__header">
-    <h1 class="board__title">Tasks</h1>
+    <p class="board__date">{{ today | date: 'EEEE, MMMM d' }}</p>
+    <h1 class="board__title">{{ greeting }}</h1>
+    <p class="board__tagline">Let's make today productive.</p>
   </header>
 
   <section class="progress-card" aria-labelledby="progress-title">
     <div
       class="ring"
+      [class.ring--complete]="allDone()"
       role="progressbar"
       aria-label="Tasks completed"
       aria-valuemin="0"
@@ -24,23 +27,44 @@
         />
       </svg>
       <span class="ring__label" aria-hidden="true">{{ progress() }}%</span>
+      @if (allDone()) {
+        <span class="ring__confetti" aria-hidden="true">
+          @for (piece of confettiPieces; track piece) {
+            <i [style.--i]="piece"></i>
+          }
+        </span>
+      }
     </div>
 
     <div class="progress-card__body">
-      <h2 class="progress-card__title" id="progress-title">Your Progress</h2>
+      <h2 class="progress-card__title" id="progress-title">
+        {{ allDone() ? 'All done!' : 'Your Progress' }}
+      </h2>
       <dl class="stats">
         <div class="stat">
-          <svg class="stat__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6M9 4a1 1 0 0 0-1 1v1h8V5a1 1 0 0 0-1-1M8 6H7a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1h-1" /></svg>
+          <svg class="stat__icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M9 4h6M9 4a1 1 0 0 0-1 1v1h8V5a1 1 0 0 0-1-1M8 6H7a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1h-1"
+            />
+          </svg>
           <dt class="stat__label">Total</dt>
           <dd class="stat__value">{{ totalCount() }}</dd>
         </div>
         <div class="stat">
-          <svg class="stat__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6M9 4a1 1 0 0 0-1 1v1h8V5a1 1 0 0 0-1-1M8 6H7a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1h-1" /></svg>
+          <svg class="stat__icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M9 4h6M9 4a1 1 0 0 0-1 1v1h8V5a1 1 0 0 0-1-1M8 6H7a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1h-1"
+            />
+          </svg>
           <dt class="stat__label">Completed</dt>
           <dd class="stat__value">{{ completedCount() }}</dd>
         </div>
         <div class="stat">
-          <svg class="stat__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6M9 4a1 1 0 0 0-1 1v1h8V5a1 1 0 0 0-1-1M8 6H7a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1h-1" /></svg>
+          <svg class="stat__icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M9 4h6M9 4a1 1 0 0 0-1 1v1h8V5a1 1 0 0 0-1-1M8 6H7a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1h-1"
+            />
+          </svg>
           <dt class="stat__label">To do</dt>
           <dd class="stat__value">{{ remainingCount() }}</dd>
         </div>
@@ -86,6 +110,53 @@
     </nav>
   }
 
+  @if (totalCount() > 0) {
+    <div class="toolbar">
+      <div class="search">
+        <svg class="search__icon" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="11" cy="11" r="6.5" />
+          <path d="M16 16l4.5 4.5" />
+        </svg>
+        <input
+          class="search__input"
+          type="search"
+          name="search"
+          aria-label="Search tasks"
+          placeholder="Search tasks"
+          autocomplete="off"
+          [ngModel]="query()"
+          (ngModelChange)="query.set($event)"
+        />
+      </div>
+      <select
+        class="toolbar__sort"
+        name="sort"
+        aria-label="Sort tasks"
+        [ngModel]="sort()"
+        (ngModelChange)="sort.set($event)"
+      >
+        <option value="newest">Newest</option>
+        <option value="due">Due date</option>
+        <option value="priority">Priority</option>
+      </select>
+    </div>
+
+    <div class="category-filter" role="group" aria-label="Filter by category">
+      @for (c of categories; track c.value) {
+        <button
+          type="button"
+          class="category-chip"
+          [class]="'category-chip category-chip--' + c.value"
+          [class.category-chip--active]="categoryFilter() === c.value"
+          [attr.aria-pressed]="categoryFilter() === c.value"
+          (click)="setCategoryFilter(c.value)"
+        >
+          {{ c.label }}
+        </button>
+      }
+    </div>
+  }
+
   @if (filteredTasks().length > 0) {
     <ul class="task-list">
       @for (task of filteredTasks(); track task.id) {
@@ -116,6 +187,30 @@
                 (ngModelChange)="editDescription.set($event)"
                 name="editDescription"
               ></textarea>
+              <select
+                class="task-row__edit-select"
+                aria-label="Category"
+                name="editCategory"
+                [ngModel]="editCategory()"
+                (ngModelChange)="editCategory.set($event)"
+              >
+                <option value="">No category</option>
+                @for (c of categories; track c.value) {
+                  <option [value]="c.value">{{ c.label }}</option>
+                }
+              </select>
+              <select
+                class="task-row__edit-select"
+                aria-label="Priority"
+                name="editPriority"
+                [ngModel]="editPriority()"
+                (ngModelChange)="editPriority.set($event)"
+              >
+                <option value="">No priority</option>
+                @for (p of priorities; track p.value) {
+                  <option [value]="p.value">{{ p.label }}</option>
+                }
+              </select>
               <input
                 class="task-row__edit-date"
                 type="date"
@@ -158,13 +253,25 @@
               @if (task.description) {
                 <p class="task-row__description">{{ task.description }}</p>
               }
-            </div>
-
-            <span class="task-row__due">
-              @if (task.dueDate) {
-                {{ isOverdue(task) ? 'Overdue · ' : '' }}{{ task.dueDate | date: 'MMM d' }}
+              @let due = dueInfo(task);
+              @if (due || task.category || task.priority) {
+                <div class="task-row__meta">
+                  @if (due) {
+                    <span class="chip chip--due chip--{{ due.tone }}">{{ due.text }}</span>
+                  }
+                  @if (task.category) {
+                    <span class="chip chip--{{ task.category }}">{{
+                      categoryLabel(task.category)
+                    }}</span>
+                  }
+                  @if (task.priority) {
+                    <span class="chip chip--priority chip--{{ task.priority }}">
+                      {{ priorityLabel(task.priority) }} priority
+                    </span>
+                  }
+                </div>
               }
-            </span>
+            </div>
 
             <button
               type="button"
@@ -187,8 +294,25 @@
           <rect x="8" y="6" width="32" height="36" rx="6" />
           <path d="M16 18h16M16 25h16M16 32h9" />
         </svg>
-        <p class="empty-state__title">No tasks yet</p>
-        <p class="empty-state__body">Type a task above and press Add to get started.</p>
+        <p class="empty-state__title">A fresh start</p>
+        <p class="empty-state__body">
+          Tap the + button to add your first task, or try one of these:
+        </p>
+        <div class="suggestions">
+          @for (text of suggestions; track text) {
+            <button type="button" class="suggestion" (click)="openComposer(text)">
+              {{ text }}
+            </button>
+          }
+        </div>
+      } @else if (hasActiveFilters()) {
+        <svg class="empty-state__mark" viewBox="0 0 48 48" aria-hidden="true">
+          <circle cx="21" cy="21" r="12" />
+          <path d="M30 30l10 10" />
+        </svg>
+        <p class="empty-state__title">No matching tasks</p>
+        <p class="empty-state__body">Try a different search or category.</p>
+        <button type="button" class="suggestion" (click)="clearFilters()">Clear filters</button>
       } @else if (filter() === 'active') {
         <svg
           class="empty-state__mark empty-state__mark--success"
@@ -250,6 +374,60 @@
           [ngModel]="newDescription()"
           (ngModelChange)="newDescription.set($event)"
         ></textarea>
+        <fieldset class="sheet__group">
+          <legend class="sheet__label">Category <span>(optional)</span></legend>
+          <div class="option-row">
+            <label class="option">
+              <input
+                type="radio"
+                name="category"
+                value=""
+                [ngModel]="newCategory()"
+                (ngModelChange)="newCategory.set($event)"
+              />
+              <span>None</span>
+            </label>
+            @for (o of categories; track o.value) {
+              <label class="option option--{{ o.value }}">
+                <input
+                  type="radio"
+                  name="category"
+                  [value]="o.value"
+                  [ngModel]="newCategory()"
+                  (ngModelChange)="newCategory.set($event)"
+                />
+                <span>{{ o.label }}</span>
+              </label>
+            }
+          </div>
+        </fieldset>
+        <fieldset class="sheet__group">
+          <legend class="sheet__label">Priority <span>(optional)</span></legend>
+          <div class="option-row">
+            <label class="option">
+              <input
+                type="radio"
+                name="priority"
+                value=""
+                [ngModel]="newPriority()"
+                (ngModelChange)="newPriority.set($event)"
+              />
+              <span>None</span>
+            </label>
+            @for (o of priorities; track o.value) {
+              <label class="option option--{{ o.value }}">
+                <input
+                  type="radio"
+                  name="priority"
+                  [value]="o.value"
+                  [ngModel]="newPriority()"
+                  (ngModelChange)="newPriority.set($event)"
+                />
+                <span>{{ o.label }}</span>
+              </label>
+            }
+          </div>
+        </fieldset>
         <label class="sheet__label" for="new-due">Due date <span>(optional)</span></label>
         <input
           id="new-due"
