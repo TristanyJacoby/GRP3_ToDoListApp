@@ -12,6 +12,7 @@ export class TaskStorageService {
     const task: Task = {
       id: crypto.randomUUID(),
       title: draft.title.trim(),
+      description: draft.description?.trim() ?? '',
       dueDate: draft.dueDate,
       completed: false,
       createdAt: new Date().toISOString(),
@@ -22,7 +23,12 @@ export class TaskStorageService {
   edit(id: string, draft: TaskDraft): void {
     this.update(
       this._tasks().map((task) =>
-        task.id === id ? { ...task, title: draft.title.trim(), dueDate: draft.dueDate } : task,
+        task.id === id ? {
+                ...task,
+                title: draft.title.trim(),
+                description: draft.description?.trim() ?? '',
+                dueDate: draft.dueDate,
+              } : task,
       ),
     );
   }
@@ -35,6 +41,10 @@ export class TaskStorageService {
 
   remove(id: string): void {
     this.update(this._tasks().filter((task) => task.id !== id));
+  }
+
+  clearCompleted(): void {
+    this.update(this._tasks().filter((task) => !task.completed));
   }
 
   private update(tasks: Task[]): void {

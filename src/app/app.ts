@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, HostListener, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Task } from './models/task.model';
@@ -17,10 +17,14 @@ export class App {
 
   readonly filter = signal<Filter>('all');
   readonly editingId = signal<string | null>(null);
+  readonly pendingDelete = signal<Task | null>(null);
 
   readonly newTitle = signal('');
+  readonly newDescription = signal('');
   readonly newDueDate = signal('');
+  readonly composerOpen = signal(false);
   readonly editTitle = signal('');
+  readonly editDescription = signal('');
   readonly editDueDate = signal('');
 
   readonly tasks = this.store.tasks;
@@ -35,7 +39,10 @@ export class App {
 
   readonly remainingCount = computed(() => this.tasks().filter((t) => !t.completed).length);
   readonly totalCount = computed(() => this.tasks().length);
-  readonly nextIndex = computed(() => String(this.totalCount() + 1).padStart(2, '0'));
+  readonly completedCount = computed(() => this.totalCount() - this.remainingCount());
+  readonly progress = computed(() =>
+    this.totalCount() === 0 ? 0 : Math.round((this.completedCount() / this.totalCount()) * 100),
+  );
 
   setFilter(filter: Filter): void {
     this.filter.set(filter);
@@ -44,21 +51,41 @@ export class App {
   addTask(): void {
     const title = this.newTitle().trim();
     if (!title) return;
-    this.store.add({ title, dueDate: this.newDueDate() || null });
+    this.store.add({
+      title,
+      description: this.newDescription(),
+      dueDate: this.newDueDate() || null,
+    });
     this.newTitle.set('');
+    this.newDescription.set('');
     this.newDueDate.set('');
+    this.composerOpen.set(false);
+  }
+
+  openComposer(): void {
+    this.composerOpen.set(true);
+    setTimeout(() => document.querySelector<HTMLElement>('.sheet__title')?.focus());
+  }
+
+  closeComposer(): void {
+    this.composerOpen.set(false);
   }
 
   startEdit(task: Task): void {
     this.editingId.set(task.id);
     this.editTitle.set(task.title);
+    this.editDescription.set(task.description ?? '');
     this.editDueDate.set(task.dueDate ?? '');
   }
 
   saveEdit(id: string): void {
     const title = this.editTitle().trim();
     if (!title) return;
-    this.store.edit(id, { title, dueDate: this.editDueDate() || null });
+    this.store.edit(id, {
+      title,
+      description: this.editDescription(),
+      dueDate: this.editDueDate() || null,
+    });
     this.editingId.set(null);
   }
 
@@ -70,8 +97,30 @@ export class App {
     this.store.toggleCompleted(id);
   }
 
-  removeTask(id: string): void {
-    this.store.remove(id);
+  clearCompleted(): void {
+    this.store.clearCompleted();
+    if (this.filter() === 'completed') this.filter.set('all');
+  }
+
+  askDelete(task: Task): void {
+    this.pendingDelete.set(task);
+    setTimeout(() => document.querySelector<HTMLElement>('.dialog__cancel')?.focus());
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.pendingDelete()) this.cancelDelete();
+    else this.closeComposer();
+  }
+
+  cancelDelete(): void {
+    this.pendingDelete.set(null);
+  }
+
+  confirmDelete(): void {
+    const task = this.pendingDelete();
+    if (task) this.store.remove(task.id);
+    this.pendingDelete.set(null);
   }
 
   isOverdue(task: Task): boolean {
