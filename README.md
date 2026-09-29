@@ -1,42 +1,39 @@
-# Tasks — Field Log
+# To-Do List App
 
-A single-page To-Do List app built with Angular (standalone components, signals). Tasks persist in the browser's `localStorage`, so the list survives a page refresh.
+A simple, mobile-friendly to-do list built with Angular. Tasks are saved in your browser's localStorage, so there is no backend.
 
 ## Features
 
-- View all tasks, with filters for All / Open / Done
-- Add a task with a title and optional due date
-- Edit a task's title and due date inline
-- Mark a task complete/incomplete
-- Delete a task
-- Overdue tasks (past due date, not completed) are flagged
-- Data persists across page refreshes via `localStorage`
+- Add tasks with a title, an optional description and an optional due date (floating **+** button)
+- Edit a task by tapping its title
+- Mark tasks done, and filter by All, To do or Done
+- Overdue tasks are highlighted
+- Progress ring showing total, completed and remaining tasks
+- Confirmation before deleting a task, and a "Clear done" button
+- Responsive light theme with accessible colors and 44px touch targets
 
-## Development server
+## Getting started
 
 ```bash
 npm install
 ng serve
 ```
 
-Then open `http://localhost:4200/`.
+Then open http://localhost:4200.
 
-## Building
-
-```bash
-ng build
-```
-
-Build artifacts are written to `dist/`.
-
-## Running unit tests
+Other commands:
 
 ```bash
-ng test
+ng build              # production build into dist/
+ng test               # run unit tests
 ```
+
+## Data storage
+
+Tasks are stored in `localStorage` under the key `todo-app.tasks`. They stay in that browser on that device, and clearing site data removes them.
 
 ## Project structure
 
-- `src/app/models/task.model.ts` — `Task` type
-- `src/app/services/task-storage.service.ts` — localStorage-backed task store (signals)
-- `src/app/app.ts` / `app.html` / `app.scss` — the single-page UI
+- `src/app/app.*` - main component (template, styles, logic)
+- `src/app/services/task-storage.service.ts` - task state and localStorage persistence
+- `src/app/models/task.model.ts` - task type
